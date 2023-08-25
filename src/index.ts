@@ -58,11 +58,7 @@ app.use(cookies());
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "https://ssul-project.vercel.app",
-      "https://you-and-my-story-client-7z83okq69-moomooberry.vercel.app",
-    ], // 요청 허용할 도메인
+    origin: ["http://localhost:3000", "https://www.youandmystory.com"], // 요청 허용할 도메인
     methods: "GET,POST,PUT,DELETE", // 허용할 HTTP 메서드
     allowedHeaders: ["Content-Type", "Authorization"], // 허용할 헤더
     credentials: true, // 쿠키 허용
@@ -143,6 +139,9 @@ app.post("/auth/login", (req, res) => {
     maxAge: 14 * 24 * 60 * 60 * 1000,
     httpOnly: true,
     path: "/",
+    // 클라이언트 도메인으로 이거 수정필요
+    domain: ".youandmystory.com",
+    sameSite: "strict",
   });
 
   res.status(200).json({
