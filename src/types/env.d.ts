@@ -18,5 +18,10 @@ declare namespace NodeJS {
     // token
     TOKEN_ACCESS_SECRET_KEY: string;
     TOKEN_REFRESH_SECRET_KEY: string;
+    // amazon
+    AMAZON_BUCKET_NAME: string;
+    AMAZON_BUCKET_REGION: string;
+    AMAZON_ACCESS_KEY: string;
+    AMAZIN_SECRET_KEY: string;
   }
 }
