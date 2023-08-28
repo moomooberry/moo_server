@@ -1,9 +1,11 @@
 import bodyParser = require("body-parser");
-import db from "./db";
 import express = require("express");
 import jwt = require("jsonwebtoken");
 import cookies = require("cookie-parser");
 import cors = require("cors");
+import multer = require("multer");
+import db from "./db";
+import s3 from "./s3";
 
 interface IUser {
   id: string;
@@ -30,6 +32,10 @@ const app = express();
 
 const PORT = 8000;
 
+// @@@@ 이미지를 메모리에 저장하도록 하기 위한 것, 이미지를 디스크에 저장하지 않을 것
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
 const {
   authExistMember,
   onValueData,
@@ -41,6 +47,8 @@ const {
   pushData,
   orderData,
 } = db;
+
+const { putImageToS3, deleteImageFromS3 } = s3;
 
 let users: IUser[] = [];
 let posts: IPost[];
@@ -332,6 +340,14 @@ app.put("/post/edit", async (req, res) => {
   try {
     const origin = await getData({ path: "post", key });
     const originData = origin.val();
+
+    if (originData.imgSrc && originData.imgSrc !== data.imgSrc) {
+      const arr = originData.imgSrc.split("/");
+      const imgKey = arr[arr.length - 1];
+      await deleteImageFromS3({ Key: imgKey });
+      console.log("S3 기존 이미지 삭제 ❌");
+    }
+
     await updateData<IPost>({
       path: "post",
       key,
@@ -365,6 +381,15 @@ app.put("/post/edit", async (req, res) => {
 app.delete("/post/delete", async (req, res) => {
   const key = req.body.id;
   try {
+    const origin = await getData({ path: "post", key });
+    const originData = origin.val();
+    if (originData.imgSrc) {
+      const arr = originData.imgSrc.split("/");
+      const imgKey = arr[arr.length - 1];
+      await deleteImageFromS3({ Key: imgKey });
+      console.log("S3 기존 이미지 삭제 ❌");
+    }
+
     await deleteData({ path: "post", key });
     res.status(200).json({
       code: 200,
@@ -379,10 +404,31 @@ app.delete("/post/delete", async (req, res) => {
   }
 });
 
-// app.get("/test", async (req, res) => {
-//   const data = await orderData({ path: "post", orderBy: "views" });
-//   res.send(data.val());
-// });
+// @@@@@ 클라이언트 formData.append("여기",file)
+// @@@@@ 서버 upload.single("여기") 일치 해야 함
+// @@@@ s3 버킷 만들고 IAM 에서 getObject, putObject, deleteObject 정책 설정해야함
+app.post("/image", upload.single("image"), async (req, res) => {
+  const file = req.file;
+  if (file) {
+    const buffer = file.buffer;
+    const mimetype = file.mimetype;
+    const imgUrl = await putImageToS3({ buffer, mimetype });
+    console.log("이미지 amazon s3에 post 성공", imgUrl);
+    res.status(200).json({
+      code: 200,
+      result: {
+        imgUrl,
+      },
+    });
+  } else {
+    res.status(500).json({
+      code: 500,
+      result: "Internal Server Error ⛔️",
+    });
+  }
+});
+
+// SERVER 초기 세팅
 
 app.listen(app.get("port"), async () => {
   console.log(`server 실행 ${PORT} 🚀`);
