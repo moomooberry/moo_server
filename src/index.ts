@@ -66,6 +66,7 @@ app.use(cookies());
 
 app.use(
   cors({
+    // 모바일 확인시 localhost 직접 아이피 입력
     origin: ["http://localhost:3000", "https://www.youandmystory.com"], // 요청 허용할 도메인
     methods: "GET,POST,PUT,DELETE", // 허용할 HTTP 메서드
     allowedHeaders: ["Content-Type", "Authorization"], // 허용할 헤더
@@ -77,9 +78,9 @@ app.use(
 app.use((req, res, next) => {
   if (req.url.startsWith("/post")) {
     if (
-      req.url === "/post" ||
-      req.url === "/post/view-up" ||
-      req.url === "/post/liked-up"
+      req.path === "/post" ||
+      req.path === "/post/view-up" ||
+      req.path === "/post/liked-up"
     )
       return next();
     const accessToken = req.headers.authorization?.split(" ")[1];
@@ -222,13 +223,25 @@ app.get("/auth/verification", (req, res) => {
   }
 });
 
-// Post
+// Post (Pagination 처리)
 app.get("/post", (req, res) => {
   if (req.method === "GET") {
     try {
+      const p = Number(req.query.p);
+      const ps = Number(req.query.ps);
+
+      const totalResults = posts.length;
+      const totalPages = Math.ceil(totalResults / ps);
+      const results = posts.slice((p - 1) * ps, p * ps);
       res.status(200).json({
         code: 200,
-        result: posts,
+        // result: posts,
+        result: {
+          page: p,
+          totalPages,
+          totalResults,
+          results,
+        },
       });
     } catch (e) {
       console.error(e);
