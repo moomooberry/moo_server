@@ -455,6 +455,10 @@ app.listen(app.get("port"), async () => {
       path: "post",
       onValue: (snapshot) => {
         const data = snapshot.val();
+        if (!data) {
+          posts = [];
+          return;
+        }
         const arrData = Object.keys(data).map((key) => ({
           id: key,
           ...data[key],
