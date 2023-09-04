@@ -29,6 +29,7 @@ const putImageToS3 = async ({ buffer, mimetype }: PutImageToS3Props) => {
   // resizeImage used by sharp (contain x cover로 함)
   const resizeBuffer = await sharp(buffer)
     .resize({ width: 1920, height: 1080, fit: "cover" })
+    .webp({ quality: 60 })
     .toBuffer();
   // s3 Bucket에 image 추가
   const putImageCommand = new PutObjectCommand({
