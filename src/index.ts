@@ -4,8 +4,8 @@ import jwt = require("jsonwebtoken");
 import cookies = require("cookie-parser");
 import cors = require("cors");
 import multer = require("multer");
-import db from "./db";
-import s3 from "./s3";
+import db from "./libs/firebase/db";
+import s3 from "./libs/aws/s3";
 
 interface IUser {
   id: string;
