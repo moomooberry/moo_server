@@ -4,10 +4,10 @@ import db from "../../../libs/firebase/db";
 const { getData } = db;
 
 const detailHandler = async (req: CommonRequest, res: CommonResponse) => {
-  const key = req.body.id;
+  const key = req.query.id;
 
   try {
-    const result = await getData({ path: "post", key });
+    const result = await getData({ path: "post", key: key as string });
     const data = result.val();
     res.status(200).json({
       code: 200,
