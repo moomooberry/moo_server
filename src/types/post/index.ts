@@ -1,4 +1,4 @@
-import { Category } from "../common";
+import { CommonCategory } from "../common";
 
 export interface IPost {
   title: string;
@@ -9,5 +9,5 @@ export interface IPost {
   views: number;
   liked: number;
   created: number;
-  category: Category;
+  category: CommonCategory;
 }

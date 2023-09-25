@@ -3,6 +3,7 @@ import jwt = require("jsonwebtoken"); // jwt token
 import bodyParser = require("body-parser"); // req.body parsing
 import cookies = require("cookie-parser"); // req.cookie parsing
 import cors = require("cors"); // CORS Policy
+import { cloneDeep } from "lodash";
 // LIBS
 import db from "./libs/firebase/db";
 // ROUTER
@@ -11,13 +12,26 @@ import postRouter from "./routes/post";
 import imageRouter from "./routes/image";
 // TYPE
 import type { IPost } from "./types/post";
+import { CommonCategory } from "./types/common";
 
 const app = express();
 const PORT = 8000;
 
 const { authExistMember, onValueData } = db;
 
-export let posts: IPost[];
+const initialPosts: Record<CommonCategory | "all", IPost[]> = {
+  all: [],
+  accident: [],
+  animal: [],
+  economy: [],
+  entertainments: [],
+  humor: [],
+  life: [],
+  politics: [],
+  sports: [],
+};
+
+export let posts: Record<CommonCategory | "all", IPost[]> = initialPosts;
 
 // APP-SETTING
 app.set("port", PORT);
@@ -101,17 +115,20 @@ app.listen(app.get("port"), async () => {
       path: "post",
       onValue: (snapshot) => {
         const data = snapshot.val();
-        if (!data) {
-          posts = [];
-          return;
-        }
+        if (!data) return;
+
         const arrData = Object.keys(data).map((key) => ({
           id: key,
           ...data[key],
         }));
         arrData.reverse();
-        console.log(`[SERVER]: post-data\n`, data);
-        posts = arrData;
+
+        posts = cloneDeep(initialPosts);
+        posts.all = arrData;
+        arrData.forEach((item) => {
+          posts[item.category as CommonCategory].push(item);
+        });
+        // console.log(`[SERVER]: post-data\n`, posts);
       },
     });
   } else {

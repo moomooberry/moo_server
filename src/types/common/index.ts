@@ -1,11 +1,19 @@
 import { Request, Response } from "express";
 
+export type CommonCategory =
+  | "humor"
+  | "politics"
+  | "entertainments"
+  | "animal"
+  | "sports"
+  | "life"
+  | "economy"
+  | "accident";
+
 interface ResponseBody<T = unknown> {
   code: number;
   result: T | string;
 }
-
-export type Category = "ssul";
 
 export type CommonRequest = Request;
 
